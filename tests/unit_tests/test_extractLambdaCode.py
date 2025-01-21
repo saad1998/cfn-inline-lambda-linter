@@ -12,7 +12,7 @@ def test_extract_lambda_code_valid():
         }
     }
     dict_to_check = {"LambdaFunction": {"status": "CodeNotFormatted"}}
-    result = extractLambdaCode(resources, dict_to_check, {})
+    result = extractLambdaCode(resources, dict_to_check, args=None)
     assert result["LambdaFunction"]["status"] == "FoundNoErrors"
 
 def test_extract_lambda_code_invalid():
@@ -26,7 +26,7 @@ def test_extract_lambda_code_invalid():
         }
     }
     dict_to_check = {"LambdaFunction": {"status": "CodeNotFormatted"}}
-    result = extractLambdaCode(resources, dict_to_check, {})
+    result = extractLambdaCode(resources, dict_to_check, args=None)
     assert result["LambdaFunction"]["status"] == "FoundErrors"
     assert "SyntaxError" in result["LambdaFunction"]["errors"]
 
@@ -42,4 +42,4 @@ def test_extract_lambda_code_missing_zipfile():
     }
     dict_to_check = {"LambdaFunction": {"status": "CodeNotFormatted"}}
     with pytest.raises(KeyError):
-        extractLambdaCode(resources, dict_to_check, {})
+        extractLambdaCode(resources, dict_to_check, args=None)

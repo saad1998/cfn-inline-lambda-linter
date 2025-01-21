@@ -17,5 +17,5 @@ def test_flake8_linting(mock_popen):
     }
     dict_to_check = {"LambdaFunction": {"status": "CodeNotFormatted"}}
     from cfn_inline_lambda_linter.linter import extractLambdaCode
-    result = extractLambdaCode(resources, dict_to_check, {})
+    result = extractLambdaCode(resources, dict_to_check, args=None)
     assert result["LambdaFunction"]["status"] == "FoundNoErrors"
