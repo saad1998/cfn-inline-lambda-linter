@@ -3,8 +3,8 @@
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/cfn-inline-lambda-linter)](https://pypi.org/project/cfn-inline-lambda-linter/)  
 [![PyPI](https://img.shields.io/pypi/v/cfn-inline-lambda-linter)](https://pypi.org/project/cfn-inline-lambda-linter/)  
 [![License](https://img.shields.io/github/license/saad1998/cfn-inline-lambda-linter)](./LICENSE)  
-[![Code Coverage](https://img.shields.io/codecov/c/github/saad1998/cfn-inline-lambda-linter)](https://codecov.io/gh/your-username/cfn-inline-lambda-linter)  
-[![GitHub Stars](https://img.shields.io/github/stars/saad1998/cfn-inline-lambda-linter)](https://github.com/your-username/cfn-inline-lambda-linter/stargazers)  
+[![Code Coverage](https://img.shields.io/codecov/c/github/saad1998/cfn-inline-lambda-linter)](https://codecov.io/gh/saad1998/cfn-inline-lambda-linter)  
+[![GitHub Stars](https://img.shields.io/github/stars/saad1998/cfn-inline-lambda-linter)](https://github.com/saad1998/cfn-inline-lambda-linter/stargazers)  
 
 **`cfn-inline-lambda-linter`** is a powerful and lightweight tool for **linting inline Lambda functions** embedded in AWS CloudFormation templates. Optimize your Lambda code, catch potential issues, and enforce best practices effortlessly.  
 
