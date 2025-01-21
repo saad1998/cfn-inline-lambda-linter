@@ -2,7 +2,7 @@
   name: CloudFormation Inline Lambda Linter
   entry: cfn-inline-lambda-linter
   language: python
-  types: [yaml, yml]
+  types: [yaml]
   files: \.ya?ml$
   description: Lints inline Python code in CloudFormation YAML templates.
   args: []  # Default args can be empty or set to some initial values
