@@ -1,6 +1,6 @@
 - id: cfn-inline-lambda-linter
   name: CloudFormation Inline Lambda Linter
-  entry: cfn-lambda-linter lint
+  entry: cfn_lambda_lint lint
   language: python
   types: [yaml]
   files: \.ya?ml$
