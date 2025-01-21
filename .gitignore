@@ -8,10 +8,6 @@ venv/
 .env/
 *.env
 
-# Poetry specific
-*.toml
-*.lock
-
 # IDEs and Editors
 .vscode/
 .idea/

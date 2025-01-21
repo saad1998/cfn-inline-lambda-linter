@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "cfn-inline-lambda-linter"
+version = "0.1.0"
+description = "Prints out linting errors found in inline cloudformation lambda code"
+authors = ["Saad Mohsin Khan <saadk687@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+typer = "^0.15.1"
+pyyaml = "^6.0.2"
+colorama = "^0.4.6"
+flake8 = "^7.1.1"
+
+[tool.poetry.scripts]
+cfn_lambda_lint = "cfn_inline_lambda_linter.main:app"
+cill = "cfn_inline_lambda_linter.main:app"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
