@@ -112,7 +112,7 @@ def extractLambdaCode(resources, parameters, dict_to_check, args=None):
                                 stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
                             )
                     else:
-                        raise ValueError(f"❌ Found a programming language that is not supported at the moment")
+                        print(f"❌ Found a programming language that is not supported at the moment")
                 else:
                     raise KeyError(f"❌ Parameter definition for parameter {param} is missing")
             elif ("!Ref" not in programming_lang or "Fn::Ref" not in programming_lang) and ("python" not in programming_lang):
@@ -130,7 +130,7 @@ def extractLambdaCode(resources, parameters, dict_to_check, args=None):
                                 stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
                             )
                     else:
-                        raise ValueError(f"❌ Found a programming language that is not supported at the moment")
+                        print(f"❌ Found a programming language that is not supported at the moment")
                 else:
                     raise KeyError(f"❌ Parameter definition for parameter {param} is missing")
             else:    
@@ -146,7 +146,7 @@ def extractLambdaCode(resources, parameters, dict_to_check, args=None):
                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
                         )
                 else:
-                    raise ValueError(f"❌ Found a programming language that is not supported at the moment")
+                    print(f"❌ Found a programming language that is not supported at the moment")
 
             stdout, stderr = process.communicate(input=lambda_code.encode())
 

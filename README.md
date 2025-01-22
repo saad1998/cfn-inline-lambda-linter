@@ -102,7 +102,7 @@ repos:
     hooks:
       - id: cfn-inline-lambda-linter
         files: template.yaml
-        args: ["--args=--max-line-length=88  --ignore=E203,W503"]
+        args: ["--args=--max-line-length=88 --ignore=E203,W503"]
 ```
 
 #### 🎉 You're All Set!
