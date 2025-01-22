@@ -65,7 +65,7 @@ Ensure your code is always clean and adheres to best practices by integrating `c
 
    ```yaml
    repos:
-     - repo: https://github.com/your-username/cfn-inline-lambda-linter
+     - repo: https://github.com/saad1998/cfn-inline-lambda-linter
        rev: v0.1.0  # Replace with the latest version
        hooks:
          - id: cfn-inline-lambda-linter

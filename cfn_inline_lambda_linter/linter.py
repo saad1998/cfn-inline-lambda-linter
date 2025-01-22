@@ -65,12 +65,13 @@ def findLambdaResources(resources):
 
 
 
-def extractLambdaCode(resources, dict_to_check, args=None):
+def extractLambdaCode(resources, parameters, dict_to_check, args=None):
     """
     Processes Lambda resources and checks their inline code for syntax errors using flake8.
 
     Args:
         resources (dict): Dictionary containing resource definitions.
+        parameters (dict): Dictionary containing parameter definitions.
         dict_to_check (dict): Dictionary of resources to check.
         args (str): Template dictionary (not used directly in this function).
 
@@ -86,24 +87,67 @@ def extractLambdaCode(resources, dict_to_check, args=None):
         try:
             if "ZipFile" not in resources[i]["Properties"]["Code"]:
                 raise KeyError(f"'ZipFile' key missing in resource '{i}' code properties.")
-            
             lambda_code = resources[i]["Properties"]["Code"]["ZipFile"]
             programming_lang = resources[i]["Properties"]["Runtime"]
             if not isinstance(lambda_code, str):
                 raise ValueError(f"Expected a string for 'ZipFile' content in resource '{i}', got {type(lambda_code)}.")
 
             print(Fore.CYAN + f"🔍 Checking resource '{i}' for code linting..." + Style.RESET_ALL)
-            if "python" in programming_lang:
-                if args is None:
-                    process = subprocess.Popen(
-                        ['python', '-m', 'flake8', "-"],
-                        stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-                    )
+
+            if "!Ref" in programming_lang or "Fn::Ref" in programming_lang:
+                print(programming_lang)
+                param = programming_lang.strip().split()[-1]
+                print(param)
+                if param in parameters:
+                    val = parameters[param]["Default"]
+                    if "python" in val:
+                        if args is None:
+                            process = subprocess.Popen(
+                                ['python', '-m', 'flake8', "-"],
+                                stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                            )
+                        else:
+                            process = subprocess.Popen(
+                                ['python', '-m', 'flake8', "-"] + args.split(),
+                                stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                            )
+                    else:
+                        raise ValueError(f"❌ Found a programming language that is not supported at the moment")
                 else:
-                    process = subprocess.Popen(
-                        ['python', '-m', 'flake8', "-"] + args.split(),
-                        stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-                    )
+                    raise KeyError(f"❌ Parameter definition for parameter {param} is missing")
+            elif ("!Ref" not in programming_lang or "Fn::Ref" not in programming_lang) and ("python" not in programming_lang):
+                if programming_lang in parameters:
+                    val = parameters[programming_lang]["Default"]
+                    if "python" in val:
+                        if args is None:
+                            process = subprocess.Popen(
+                                ['python', '-m', 'flake8', "-"],
+                                stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                            )
+                        else:
+                            process = subprocess.Popen(
+                                ['python', '-m', 'flake8', "-"] + args.split(),
+                                stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                            )
+                    else:
+                        raise ValueError(f"❌ Found a programming language that is not supported at the moment")
+                else:
+                    raise KeyError(f"❌ Parameter definition for parameter {param} is missing")
+            else:    
+                if "python" in programming_lang:
+                    if args is None:
+                        process = subprocess.Popen(
+                            ['python', '-m', 'flake8', "-"],
+                            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                        )
+                    else:
+                        process = subprocess.Popen(
+                            ['python', '-m', 'flake8', "-"] + args.split(),
+                            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                        )
+                else:
+                    raise ValueError(f"❌ Found a programming language that is not supported at the moment")
+
             stdout, stderr = process.communicate(input=lambda_code.encode())
 
             if process.returncode not in [0, 1]:  # 0: No issues, 1: Linting errors
@@ -167,6 +211,7 @@ def linter(fileName, args=None):
     try:
         template = readFile(fileName)
         resources = template["Resources"]
+        parameters = template["Parameters"]
         dict_to_check = findLambdaResources(resources)
         print(Fore.CYAN + f"📂 Found {len(dict_to_check)} resources to check." + Style.RESET_ALL)
     except Exception as e:
@@ -176,9 +221,9 @@ def linter(fileName, args=None):
     # Extract and lint Lambda code
     try:
         if args is None:
-            error_dict = extractLambdaCode(resources, dict_to_check, args=None)
+            error_dict = extractLambdaCode(resources, parameters, dict_to_check, args=None)
         else:
-            error_dict = extractLambdaCode(resources, dict_to_check, args)
+            error_dict = extractLambdaCode(resources, parameters,dict_to_check, args)
     except Exception as e:
         print(Fore.RED + f"❌ Error during Lambda code extraction: {e}" + Style.RESET_ALL)
         sys.exit(1)
