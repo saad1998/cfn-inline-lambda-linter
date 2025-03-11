@@ -112,7 +112,12 @@ def extractLambdaCode(resources, parameters, dict_to_check, args=None):
                                 stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
                             )
                     else:
-                        print(f"❌ Found a programming language that is not supported at the moment")
+                        print(f"⚠️ Found a programming language that is not supported at the moment")
+                        dict_to_check[i] = {
+                            "status": "Skipped",
+                            "errors": "Programming Language not yet supported"
+                        }
+                        continue
                 else:
                     raise KeyError(f"❌ Parameter definition for parameter {param} is missing")
             elif ("!Ref" not in programming_lang or "Fn::Ref" not in programming_lang) and ("python" not in programming_lang):
@@ -130,7 +135,13 @@ def extractLambdaCode(resources, parameters, dict_to_check, args=None):
                                 stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
                             )
                     else:
-                        print(f"❌ Found a programming language that is not supported at the moment")
+                        print(f"⚠️ Found a programming language that is not supported at the moment")
+                        dict_to_check[i] = {
+                            "status": "Skipped",
+                            "errors": "Programming Language not yet supported"
+                        }
+                        continue
+
                 else:
                     raise KeyError(f"❌ Parameter definition for parameter {param} is missing")
             else:    
@@ -146,7 +157,12 @@ def extractLambdaCode(resources, parameters, dict_to_check, args=None):
                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
                         )
                 else:
-                    print(f"❌ Found a programming language that is not supported at the moment")
+                    print(f"⚠️ Found a programming language that is not supported at the moment")
+                    dict_to_check[i] = {
+                        "status": "Skipped",
+                        "errors": "Programming Language not yet supported"
+                    }
+                    continue
 
             stdout, stderr = process.communicate(input=lambda_code.encode())
 
@@ -188,6 +204,9 @@ def outputPrinting(error_dict):
             lst.append(False)
         elif error_dict[i]["status"] == "FoundNoErrors":
             print(Fore.GREEN + "\n  ✅ " + str(resource_count) + f". Resource {i} has no errors in the lambda function. 🎉" + Style.RESET_ALL)
+            lst.append(True)
+        elif error_dict[i]["status"] == "Skipped":
+            print(Fore.YELLOW + "\n ⚠️ " + str(resource_count) + f". Resource {i} is using a programming language that is not yet supported." + Style.RESET_ALL)
             lst.append(True)
         resource_count += 1
 
