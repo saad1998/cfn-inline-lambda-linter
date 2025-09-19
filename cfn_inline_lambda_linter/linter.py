@@ -85,22 +85,45 @@ def extractLambdaCode(resources, parameters, dict_to_check, args=None):
     
     for i in dict_to_check:
         try:
-            if "ZipFile" not in resources[i]["Properties"]["Code"]:
-                raise KeyError(f"'ZipFile' key missing in resource '{i}' code properties.")
-            lambda_code = resources[i]["Properties"]["Code"]["ZipFile"]
-            programming_lang = resources[i]["Properties"]["Runtime"]
-            if not isinstance(lambda_code, str):
-                raise ValueError(f"Expected a string for 'ZipFile' content in resource '{i}', got {type(lambda_code)}.")
+            if "ZipFile" in resources[i]["Properties"]["Code"]:
+                lambda_code = resources[i]["Properties"]["Code"]["ZipFile"]
+                programming_lang = resources[i]["Properties"]["Runtime"]
+                if not isinstance(lambda_code, str):
+                    raise ValueError(f"Expected a string for 'ZipFile' content in resource '{i}', got {type(lambda_code)}.")
 
-            print(Fore.CYAN + f"🔍 Checking resource '{i}' for code linting..." + Style.RESET_ALL)
+                print(Fore.CYAN + f"🔍 Checking resource '{i}' for code linting..." + Style.RESET_ALL)
 
-            if "!Ref" in programming_lang or "Fn::Ref" in programming_lang:
-                print(programming_lang)
-                param = programming_lang.strip().split()[-1]
-                print(param)
-                if param in parameters:
-                    val = parameters[param]["Default"]
-                    if "python" in val:
+                process = None  # Initialize process variable
+                
+                if "!Ref" in programming_lang or "Fn::Ref" in programming_lang:
+                    print(programming_lang)
+                    param = programming_lang.strip().split()[-1]
+                    print(param)
+                    if param in parameters:
+                        val = parameters[param]["Default"]
+                        if "python" in val:
+                            if args is None:
+                                process = subprocess.Popen(
+                                    ['python', '-m', 'flake8', "-"],
+                                    stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                                )
+                            else:
+                                process = subprocess.Popen(
+                                    ['python', '-m', 'flake8', "-"] + args.split(),
+                                    stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                                )
+                        else:
+                            print(f"❌ Found a programming language that is not supported at the moment")
+                            dict_to_check[i] = {
+                                "status": "SkippingLambda",
+                                "errors": f"Unsupported programming language: {val}"
+                            }
+                            print(Fore.GREEN + f"✅ Linting check completed for resource '{i}'" + Style.RESET_ALL)
+                            continue
+                    else:
+                        raise KeyError(f"❌ Parameter definition for parameter {param} is missing")
+                elif ("!Ref" not in programming_lang and "Fn::Ref" not in programming_lang):                    
+                    if "python" in programming_lang:
                         if args is None:
                             process = subprocess.Popen(
                                 ['python', '-m', 'flake8', "-"],
@@ -113,51 +136,31 @@ def extractLambdaCode(resources, parameters, dict_to_check, args=None):
                             )
                     else:
                         print(f"❌ Found a programming language that is not supported at the moment")
-                else:
-                    raise KeyError(f"❌ Parameter definition for parameter {param} is missing")
-            elif ("!Ref" not in programming_lang or "Fn::Ref" not in programming_lang) and ("python" not in programming_lang):
-                if programming_lang in parameters:
-                    val = parameters[programming_lang]["Default"]
-                    if "python" in val:
-                        if args is None:
-                            process = subprocess.Popen(
-                                ['python', '-m', 'flake8', "-"],
-                                stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-                            )
-                        else:
-                            process = subprocess.Popen(
-                                ['python', '-m', 'flake8', "-"] + args.split(),
-                                stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-                            )
-                    else:
-                        print(f"❌ Found a programming language that is not supported at the moment")
-                else:
-                    raise KeyError(f"❌ Parameter definition for parameter {param} is missing")
-            else:    
-                if "python" in programming_lang:
-                    if args is None:
-                        process = subprocess.Popen(
-                            ['python', '-m', 'flake8', "-"],
-                            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-                        )
-                    else:
-                        process = subprocess.Popen(
-                            ['python', '-m', 'flake8', "-"] + args.split(),
-                            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-                        )
-                else:
-                    print(f"❌ Found a programming language that is not supported at the moment")
+                        dict_to_check[i] = {
+                            "status": "SkippingLambda",
+                            "errors": f"Unsupported programming language: {programming_lang}"
+                        }
+                        print(Fore.GREEN + f"✅ Linting check completed for resource '{i}'" + Style.RESET_ALL)
+                        continue
 
-            stdout, stderr = process.communicate(input=lambda_code.encode())
+                # Only proceed with linting if we have a valid process
+                if process is not None:
+                    stdout, stderr = process.communicate(input=lambda_code.encode())
 
-            if process.returncode not in [0, 1]:  # 0: No issues, 1: Linting errors
-                raise RuntimeError(f"❌ flake8 process failed with return code {process.returncode}: {stderr.decode()}")
+                    if process.returncode not in [0, 1]:  # 0: No issues, 1: Linting errors
+                        raise RuntimeError(f"❌ flake8 process failed with return code {process.returncode}: {stderr.decode()}")
 
-            dict_to_check[i] = {
-                "status": "FoundNoErrors" if stdout.decode() == "" else "FoundErrors",
-                "errors": stdout.decode()
-            }
-            print(Fore.GREEN + f"✅ Linting check completed for resource '{i}'" + Style.RESET_ALL)
+                    dict_to_check[i] = {
+                        "status": "FoundNoErrors" if stdout.decode() == "" else "FoundErrors",
+                        "errors": stdout.decode()
+                    }
+                    print(Fore.GREEN + f"✅ Linting check completed for resource '{i}'" + Style.RESET_ALL)
+            else:
+                dict_to_check[i] = {
+                    "status": "SkippingLambda",
+                    "errors": "Lambda function doesnot have inline code"
+                }
+                print(Fore.GREEN + f"✅ Linting check completed for resource '{i}'" + Style.RESET_ALL)
 
         except Exception as e:
             print(Fore.RED + f"❌ Error processing resource '{i}': {e}" + Style.RESET_ALL)
@@ -189,6 +192,9 @@ def outputPrinting(error_dict):
         elif error_dict[i]["status"] == "FoundNoErrors":
             print(Fore.GREEN + "\n  ✅ " + str(resource_count) + f". Resource {i} has no errors in the lambda function. 🎉" + Style.RESET_ALL)
             lst.append(True)
+        elif error_dict[i]["status"] == "SkippingLambda":
+            print(Fore.GREEN + "\n  ✅ " + str(resource_count) + f". Resource {i} was skipped because linter was not able to find inline code in the lambda function. 🎉" + Style.RESET_ALL)
+            lst.append(True)
         resource_count += 1
 
     if all(lst) == True:
@@ -210,10 +216,14 @@ def linter(fileName, args=None):
     # Read the file and parse the template
     try:
         template = readFile(fileName)
-        resources = template["Resources"]
-        parameters = template["Parameters"]
-        dict_to_check = findLambdaResources(resources)
-        print(Fore.CYAN + f"📂 Found {len(dict_to_check)} resources to check." + Style.RESET_ALL)
+        if "Resources" in template:
+            resources = template["Resources"]
+            dict_to_check = findLambdaResources(resources)
+            print(Fore.CYAN + f"📂 Found {len(dict_to_check)} resources to check." + Style.RESET_ALL)
+        else:
+            print(Fore.YELLOW + "⚠️ No 'Resources' section found. This doesn't appear to be a CloudFormation template." + Style.RESET_ALL)
+            print(Fore.GREEN + "✅ Skipping file - no Lambda functions to check." + Style.RESET_ALL)
+            sys.exit(0)
     except Exception as e:
         print(Fore.RED + f"❌ Error while reading or parsing file: {e}" + Style.RESET_ALL)
         sys.exit(1)
@@ -221,9 +231,17 @@ def linter(fileName, args=None):
     # Extract and lint Lambda code
     try:
         if args is None:
-            error_dict = extractLambdaCode(resources, parameters, dict_to_check, args=None)
+            if "Parameters" in template:
+                parameters = template["Parameters"]
+                error_dict = extractLambdaCode(resources, parameters, dict_to_check, args=None)
+            else:
+                error_dict = extractLambdaCode(resources, {}, dict_to_check, args=None)
         else:
-            error_dict = extractLambdaCode(resources, parameters,dict_to_check, args)
+            if "Parameters" in template:
+                parameters = template["Parameters"]
+                error_dict = extractLambdaCode(resources, parameters, dict_to_check, args)
+            else:
+                error_dict = extractLambdaCode(resources, {}, dict_to_check, args)
     except Exception as e:
         print(Fore.RED + f"❌ Error during Lambda code extraction: {e}" + Style.RESET_ALL)
         sys.exit(1)
