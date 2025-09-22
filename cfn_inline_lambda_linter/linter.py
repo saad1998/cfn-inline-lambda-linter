@@ -104,14 +104,28 @@ def extractLambdaCode(resources, parameters, dict_to_check, args=None):
                         if "python" in val:
                             if args is None:
                                 process = subprocess.Popen(
-                                    ['python', '-m', 'flake8', "-"],
+                                    ['python', '-m', 'flake8', "-", "--ignore=F828"],
                                     stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
                                 )
                             else:
-                                process = subprocess.Popen(
-                                    ['python', '-m', 'flake8', "-"] + args.split(),
-                                    stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-                                )
+                                if "F828" in args:    
+                                    process = subprocess.Popen(
+                                        ['python', '-m', 'flake8', "-"] + args.split(),
+                                        stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                                    )
+                                else:
+                                    if "--ignore" in args:
+                                        y=args.split("--ignore=")[1] + ",F828"
+                                        z=args.split("--ignore")[:-1] + ["--ignore=" + y]
+                                        process = subprocess.Popen(
+                                            ['python', '-m', 'flake8', "-"] + z,
+                                            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                                        )
+                                    else:
+                                        process = subprocess.Popen(
+                                            ['python', '-m', 'flake8', "-", "--ignore=F828"] + args.split(),
+                                            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                                        )
                         else:
                             print(f"❌ Found a programming language that is not supported at the moment")
                             dict_to_check[i] = {
@@ -126,14 +140,28 @@ def extractLambdaCode(resources, parameters, dict_to_check, args=None):
                     if "python" in programming_lang:
                         if args is None:
                             process = subprocess.Popen(
-                                ['python', '-m', 'flake8', "-"],
+                                ['python', '-m', 'flake8', "-", "--ignore=F828"],
                                 stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
                             )
                         else:
-                            process = subprocess.Popen(
-                                ['python', '-m', 'flake8', "-"] + args.split(),
-                                stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-                            )
+                            if "F828" in args:    
+                                process = subprocess.Popen(
+                                    ['python', '-m', 'flake8', "-"] + args.split(),
+                                    stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                                )
+                            else:
+                                if "--ignore" in args:
+                                    y=args.split("--ignore=")[1] + ",F828"
+                                    z=args.split("--ignore")[:-1] + ["--ignore=" + y]
+                                    process = subprocess.Popen(
+                                        ['python', '-m', 'flake8', "-"] + z,
+                                        stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                                    )
+                                else:
+                                    process = subprocess.Popen(
+                                        ['python', '-m', 'flake8', "-", "--ignore=F828"] + args.split(),
+                                        stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                                    )
                     else:
                         print(f"❌ Found a programming language that is not supported at the moment")
                         dict_to_check[i] = {

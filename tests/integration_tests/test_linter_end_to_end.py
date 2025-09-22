@@ -84,3 +84,35 @@ def test_linter_simple_yaml_not_cloudformation(tmp_path, monkeypatch):
     
     # Should exit with code 0 (success) since it's skipping the file
     assert exc_info.value.code == 0
+
+def test_linter_lambda_with_sub_function_ignores_f828(tmp_path, monkeypatch):
+    """Test that F828 errors are ignored when Lambda code uses !Sub with CloudFormation parameters/resources"""
+    file_path = tmp_path / "lambda_with_sub_template.yaml"
+    file_path.write_text("""
+    Parameters:
+      BucketName:
+        Type: String
+        Default: "my-test-bucket"
+        
+    Resources:
+      MyS3Bucket:
+        Type: "AWS::S3::Bucket"
+        Properties:
+          BucketName: !Ref BucketName
+          
+      LambdaFunction:
+        Type: "AWS::Lambda::Function"
+        Properties:
+          Runtime: "python3.8"
+          Code:
+            ZipFile: !Sub |
+              import boto3
+              bucket_name = "${BucketName}"
+              s3_bucket = "${MyS3Bucket}"
+              def lambda_handler(event, context):
+                  print(f"Bucket name: {bucket_name}")
+                  print(f"S3 bucket: {s3_bucket}")
+                  return {"statusCode": 200}
+    """)
+    monkeypatch.setattr("sys.exit", lambda x: x)  # Prevent pytest from exiting
+    linter(str(file_path))
