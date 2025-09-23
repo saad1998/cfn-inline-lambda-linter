@@ -104,18 +104,18 @@ def extractLambdaCode(resources, parameters, dict_to_check, args=None):
                         if "python" in val:
                             if args is None:
                                 process = subprocess.Popen(
-                                    ['python', '-m', 'flake8', "-", "--ignore=F828"],
+                                    ['python', '-m', 'flake8', "-", "--ignore=F821"],
                                     stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
                                 )
                             else:
-                                if "F828" in args:    
+                                if "F821" in args:    
                                     process = subprocess.Popen(
                                         ['python', '-m', 'flake8', "-"] + args.split(),
                                         stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
                                     )
                                 else:
                                     if "--ignore" in args:
-                                        y=args.split("--ignore=")[1] + ",F828"
+                                        y=args.split("--ignore=")[1] + ",F821"
                                         z=args.split("--ignore")[:-1] + ["--ignore=" + y]
                                         process = subprocess.Popen(
                                             ['python', '-m', 'flake8', "-"] + z,
@@ -123,7 +123,7 @@ def extractLambdaCode(resources, parameters, dict_to_check, args=None):
                                         )
                                     else:
                                         process = subprocess.Popen(
-                                            ['python', '-m', 'flake8', "-", "--ignore=F828"] + args.split(),
+                                            ['python', '-m', 'flake8', "-", "--ignore=F821"] + args.split(),
                                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
                                         )
                         else:
@@ -140,18 +140,18 @@ def extractLambdaCode(resources, parameters, dict_to_check, args=None):
                     if "python" in programming_lang:
                         if args is None:
                             process = subprocess.Popen(
-                                ['python', '-m', 'flake8', "-", "--ignore=F828"],
+                                ['python', '-m', 'flake8', "-", "--ignore=F821"],
                                 stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
                             )
                         else:
-                            if "F828" in args:    
+                            if "F821" in args:    
                                 process = subprocess.Popen(
                                     ['python', '-m', 'flake8', "-"] + args.split(),
                                     stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
                                 )
                             else:
                                 if "--ignore" in args:
-                                    y=args.split("--ignore=")[1] + ",F828"
+                                    y=args.split("--ignore=")[1] + ",F821"
                                     z=args.split("--ignore")[:-1] + ["--ignore=" + y]
                                     process = subprocess.Popen(
                                         ['python', '-m', 'flake8', "-"] + z,
@@ -159,7 +159,7 @@ def extractLambdaCode(resources, parameters, dict_to_check, args=None):
                                     )
                                 else:
                                     process = subprocess.Popen(
-                                        ['python', '-m', 'flake8', "-", "--ignore=F828"] + args.split(),
+                                        ['python', '-m', 'flake8', "-", "--ignore=F821"] + args.split(),
                                         stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
                                     )
                     else:

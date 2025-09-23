@@ -85,8 +85,8 @@ def test_linter_simple_yaml_not_cloudformation(tmp_path, monkeypatch):
     # Should exit with code 0 (success) since it's skipping the file
     assert exc_info.value.code == 0
 
-def test_linter_lambda_with_sub_function_ignores_f828(tmp_path, monkeypatch):
-    """Test that F828 errors are ignored when Lambda code uses !Sub with CloudFormation parameters/resources"""
+def test_linter_lambda_with_sub_function_ignores_f821(tmp_path, monkeypatch):
+    """Test that F821 errors are ignored when Lambda code uses !Sub with CloudFormation parameters/resources"""
     file_path = tmp_path / "lambda_with_sub_template.yaml"
     file_path.write_text("""
     Parameters:
