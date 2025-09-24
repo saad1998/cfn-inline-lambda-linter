@@ -95,49 +95,36 @@ def extractLambdaCode(resources, parameters, dict_to_check, args=None):
 
                 process = None  # Initialize process variable
                 
-                if "!Ref" in programming_lang or "Fn::Ref" in programming_lang:
-                    print(programming_lang)
-                    param = programming_lang.strip().split()[-1]
-                    print(param)
-                    if param in parameters:
-                        val = parameters[param]["Default"]
-                        if "python" in val:
-                            if args is None:
+                # Check if runtime contains "python" directly
+                if "python" in programming_lang:
+                    if args is None:
+                        process = subprocess.Popen(
+                            ['python', '-m', 'flake8', "-", "--ignore=F821"],
+                            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                        )
+                    else:
+                        if "F821" in args:    
+                            process = subprocess.Popen(
+                                ['python', '-m', 'flake8', "-"] + args.split(),
+                                stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                            )
+                        else:
+                            if "--ignore" in args:
+                                y=args.split("--ignore=")[1] + ",F821"
+                                z=args.split("--ignore")[:-1] + ["--ignore=" + y]
                                 process = subprocess.Popen(
-                                    ['python', '-m', 'flake8', "-", "--ignore=F821"],
+                                    ['python', '-m', 'flake8', "-"] + z,
                                     stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
                                 )
                             else:
-                                if "F821" in args:    
-                                    process = subprocess.Popen(
-                                        ['python', '-m', 'flake8', "-"] + args.split(),
-                                        stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-                                    )
-                                else:
-                                    if "--ignore" in args:
-                                        y=args.split("--ignore=")[1] + ",F821"
-                                        z=args.split("--ignore")[:-1] + ["--ignore=" + y]
-                                        process = subprocess.Popen(
-                                            ['python', '-m', 'flake8', "-"] + z,
-                                            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-                                        )
-                                    else:
-                                        process = subprocess.Popen(
-                                            ['python', '-m', 'flake8', "-", "--ignore=F821"] + args.split(),
-                                            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-                                        )
-                        else:
-                            print(f"❌ Found a programming language that is not supported at the moment")
-                            dict_to_check[i] = {
-                                "status": "SkippingLambda",
-                                "errors": f"Unsupported programming language: {val}"
-                            }
-                            print(Fore.GREEN + f"✅ Linting check completed for resource '{i}'" + Style.RESET_ALL)
-                            continue
-                    else:
-                        raise KeyError(f"❌ Parameter definition for parameter {param} is missing")
-                elif ("!Ref" not in programming_lang and "Fn::Ref" not in programming_lang):                    
-                    if "python" in programming_lang:
+                                process = subprocess.Popen(
+                                    ['python', '-m', 'flake8', "-", "--ignore=F821"] + args.split(),
+                                    stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                                )
+                # Check if runtime is a parameter name (CloudFormation reference resolved)
+                elif programming_lang in parameters:
+                    val = parameters[programming_lang]["Default"]
+                    if "python" in val:
                         if args is None:
                             process = subprocess.Popen(
                                 ['python', '-m', 'flake8', "-", "--ignore=F821"],
@@ -163,13 +150,21 @@ def extractLambdaCode(resources, parameters, dict_to_check, args=None):
                                         stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
                                     )
                     else:
-                        print(f"❌ Found a programming language that is not supported at the moment")
+                        print(f"⚠️ Found a programming language that is not supported at the moment")
                         dict_to_check[i] = {
                             "status": "SkippingLambda",
-                            "errors": f"Unsupported programming language: {programming_lang}"
+                            "errors": f"Unsupported programming language: {val}"
                         }
                         print(Fore.GREEN + f"✅ Linting check completed for resource '{i}'" + Style.RESET_ALL)
                         continue
+                else:
+                    print(f"⚠️ Found a programming language that is not supported at the moment")
+                    dict_to_check[i] = {
+                        "status": "SkippingLambda",
+                        "errors": f"Unsupported programming language: {programming_lang}"
+                    }
+                    print(Fore.GREEN + f"✅ Linting check completed for resource '{i}'" + Style.RESET_ALL)
+                    continue
 
                 # Only proceed with linting if we have a valid process
                 if process is not None:
